@@ -7,16 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 - **Added**
-  - (placeholder)
+  - Added retrieval context packing with provenance and trust scoring.
+  - Added prompt-injection detection guard and status-driven result codes.
+  - Added deterministic provenance and citation extraction for trusted chunks.
 
 - **Changed**
-  - (placeholder)
+  - Updated RAG feature flag alignment to the shared orchestration gating.
 
 - **Fixed**
   - (placeholder)
 
 - **Security**
-  - (placeholder)
+  - Added explicit low-trust and injection paths that escalate to review.
 
 ## [0.1.2] - 2026-05-13
 
@@ -38,5 +40,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Added initial public package scaffold with governance, legal, docs, build, test, and pack-check baselines.
 
 
-[0.1.1]: https://github.com/Plasius-LTD/ai-rag/releases/tag/v0.1.1
 [0.1.2]: https://github.com/Plasius-LTD/ai-rag/releases/tag/v0.1.2
+[0.1.1]: https://github.com/Plasius-LTD/ai-rag/releases/tag/v0.1.1

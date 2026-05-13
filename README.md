@@ -4,7 +4,7 @@ Retrieval, context packing, provenance, and prompt-injection guard contracts for
 
 ## Scope
 
-This package is part of the layered `@plasius/ai-*` package family. It is intentionally bootstrapped with a small public contract surface so implementation can evolve behind tracked Feature/Story/Task work.
+This package is part of the layered `@plasius/ai-*` package family. It defines the external contracts for retrieval provenance, context packing, trust-aware truncation, and prompt-injection guard behavior.
 
 ## Install
 
@@ -12,12 +12,43 @@ This package is part of the layered `@plasius/ai-*` package family. It is intent
 npm install @plasius/ai-rag
 ```
 
+## Contracts
+
+- `AI_RAG_FEATURE_FLAGS` declares the feature flags for RAG, provenance, and injection guard behavior.
+- `resolveAiRagContext` builds deterministic packed contexts from scored chunks and emits trust/provenance reason codes.
+- `isAiRagChunkSafe` provides a simple trust utility for non-blocking callers.
+- `packageDescriptor` exposes package name, primary flag, env prefix, and summary.
+
 ## Usage
 
 ```ts
-import { packageDescriptor } from "@plasius/ai-rag";
+import {
+  AI_RAG_FEATURE_FLAGS,
+  resolveAiRagContext,
+} from "@plasius/ai-rag";
 
-console.log(packageDescriptor.packageName);
+const result = resolveAiRagContext({
+  query: "What happened in the last hour?",
+  chunks: [
+    {
+      chunkId: "chunk-1",
+      sourceScope: "knowledge-base",
+      sourceId: "kb-2026",
+      text: "A major weather event was recorded near the delta.",
+      trust: 0.93,
+      citation: "https://knowledge-base/docs/delta",
+    },
+  ],
+  featureFlags: {
+    [AI_RAG_FEATURE_FLAGS.rag]: true,
+    [AI_RAG_FEATURE_FLAGS.provenance]: true,
+    [AI_RAG_FEATURE_FLAGS.injectionGuard]: true,
+  },
+  maxContextChars: 1200,
+});
+
+console.log(result.packedContext);
+console.log(result.status);
 ```
 
 ## Development
