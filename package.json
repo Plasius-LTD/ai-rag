@@ -1,6 +1,6 @@
 {
   "name": "@plasius/ai-rag",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Retrieval, context packing, provenance, and prompt-injection guard contracts for Plasius AI RAG.",
   "type": "module",
   "sideEffects": false,
