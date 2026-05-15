@@ -105,6 +105,22 @@ describe("@plasius/ai-rag", () => {
     expect(result.status).toBe("requires-review");
   });
 
+  it("blocks when the context window excludes every chunk", () => {
+    const result = resolveAiRagContext({
+      query: "What does the oracle say?",
+      chunks,
+      featureFlags: {
+        [AI_RAG_FEATURE_FLAGS.rag]: true,
+      },
+      maxContextChars: 1,
+      correlationId: "corr-context-window",
+    });
+
+    expect(result.status).toBe("blocked");
+    expect(result.packedContext).toBe("");
+    expect(result.reasonCodes).toContain("rag-no-results");
+  });
+
   it("builds packed context and provenance for trusted chunks", () => {
     const result = resolveAiRagContext({
       query: "What does the oracle say?",
