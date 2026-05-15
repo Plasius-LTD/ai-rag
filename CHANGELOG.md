@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Security**
   - Added explicit low-trust and injection paths that escalate to review.
+  - Prompt-injection guarding now scans retrieved chunks and excludes unsafe context before packing.
 
 ## [0.1.2] - 2026-05-13
 

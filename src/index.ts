@@ -115,7 +115,9 @@ function normalizeChunks(chunks: readonly AiRagSourceChunk[]): AiRagSourceChunk[
 function hasPromptInjection(text: string): boolean {
   const suspiciousPatterns = [
     /ignore\s+all\s+previous\s+instructions/i,
+    /ignore\s+all\s+policies/i,
     /act\s+as\s+.*user/i,
+    /inject\s+this\s+command/i,
     /simulate\s+system/i,
     /reveal\s+secrets/i,
   ];
@@ -173,17 +175,28 @@ export function resolveAiRagContext(
     };
   }
 
-  const normalizedQuery = input.query.trim();
-  const injectionDetected =
-    injectionGuardEnabled && hasPromptInjection(normalizedQuery);
-
   const normalizedChunks = normalizeChunks(input.chunks);
+  const normalizedQuery = input.query.trim();
+  const unsafeChunkIds = new Set(
+    injectionGuardEnabled
+      ? normalizedChunks
+          .filter((chunk) => hasPromptInjection(chunk.text))
+          .map((chunk) => chunk.chunkId)
+      : []
+  );
+  const injectionDetected =
+    injectionGuardEnabled &&
+    (hasPromptInjection(normalizedQuery) || unsafeChunkIds.size > 0);
 
   const selectedChunks: AiRagSourceChunk[] = [];
   const provenance: AiRagProvenanceRecord[] = [];
   let totalChars = "Context:".length;
 
   for (const chunk of normalizedChunks) {
+    if (unsafeChunkIds.has(chunk.chunkId)) {
+      continue;
+    }
+
     const snippet = `${chunk.sourceScope}:${chunk.chunkId} ${chunk.text}`;
 
     if (totalChars + snippet.length > maxContextChars) {
@@ -207,6 +220,9 @@ export function resolveAiRagContext(
 
   if (injectionDetected) {
     reasonCodes.push("rag-prompt-injection-guarded");
+    reasonCodes.push(
+      ...Array.from(unsafeChunkIds, (chunkId) => `rag-prompt-injection-chunk:${chunkId}`)
+    );
   }
 
   const provenanceWarnings = selectedChunks

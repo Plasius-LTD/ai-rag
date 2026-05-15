@@ -84,6 +84,27 @@ describe("@plasius/ai-rag", () => {
     expect(result.status).toBe("requires-review");
   });
 
+  it("filters retrieved chunks that contain prompt-injection indicators", () => {
+    const result = resolveAiRagContext({
+      query: "What does the oracle say?",
+      chunks,
+      featureFlags: {
+        [AI_RAG_FEATURE_FLAGS.rag]: true,
+        [AI_RAG_FEATURE_FLAGS.injectionGuard]: true,
+      },
+      maxContextChars: 300,
+      correlationId: "corr-chunk-injection",
+    });
+
+    expect(result.injectionDetected).toBe(true);
+    expect(result.reasonCodes).toContain("rag-prompt-injection-guarded");
+    expect(result.reasonCodes).toContain("rag-prompt-injection-chunk:chunk-2");
+    expect(result.packedContext).toContain("chunk-1");
+    expect(result.packedContext).not.toContain("chunk-2");
+    expect(result.provenance.map((entry) => entry.chunkId)).not.toContain("chunk-2");
+    expect(result.status).toBe("requires-review");
+  });
+
   it("builds packed context and provenance for trusted chunks", () => {
     const result = resolveAiRagContext({
       query: "What does the oracle say?",
