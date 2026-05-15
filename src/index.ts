@@ -94,14 +94,6 @@ function nowIsoString(): string {
   return new Date().toISOString();
 }
 
-function clampTextLen(value: string, max: number): string {
-  if (value.length <= max) {
-    return value;
-  }
-
-  return `${value.slice(0, Math.max(0, max - 1))}…`;
-}
-
 function normalizeChunks(chunks: readonly AiRagSourceChunk[]): AiRagSourceChunk[] {
   return [...chunks]
     .filter((chunk) => chunk.chunkId.trim().length > 0)
@@ -230,12 +222,9 @@ export function resolveAiRagContext(
     .map((chunk) => `low-trust-context:${chunk.chunkId}`);
   reasonCodes.push(...provenanceWarnings);
 
-  const packedContext = clampTextLen(
-    selectedChunks
-      .map((chunk) => `[${chunk.sourceScope}] ${chunk.chunkId}: ${chunk.text}`)
-      .join("\n"),
-    maxContextChars
-  );
+  const packedContext = selectedChunks
+    .map((chunk) => `[${chunk.sourceScope}] ${chunk.chunkId}: ${chunk.text}`)
+    .join("\n");
 
   const uniqueCitations = Array.from(
     new Set(
@@ -257,7 +246,7 @@ export function resolveAiRagContext(
       : "blocked";
 
   return {
-    packedContext: provenanceEnabled ? packedContext : clampTextLen(packedContext, maxContextChars),
+    packedContext,
     citations: uniqueCitations,
     provenance: provenanceEnabled
       ? provenance
@@ -265,7 +254,7 @@ export function resolveAiRagContext(
         ? []
         : provenance.map((entry) => ({
             ...entry,
-            trust: provenanceEnabled ? entry.trust : 1,
+            trust: 1,
           })),
     status,
     injectionDetected,

@@ -50,7 +50,6 @@ describe("@plasius/ai-rag", () => {
     const result = resolveAiRagContext({
       query: "What happened in the archive?",
       chunks,
-      correlationId: "corr-1",
     });
 
     expect(result).toMatchObject({
@@ -66,6 +65,7 @@ describe("@plasius/ai-rag", () => {
         status: "blocked",
       },
     });
+    expect(result.audit.correlationId.length).toBeGreaterThan(0);
   });
 
   it("detects injection indicators when guard is enabled", () => {
@@ -140,6 +140,77 @@ describe("@plasius/ai-rag", () => {
     expect(result.status).toBe("requires-review");
   });
 
+  it("approves trusted internal context without provenance review", () => {
+    const result = resolveAiRagContext({
+      query: "What does the oracle say?",
+      chunks: [
+        {
+          chunkId: "chunk-internal",
+          sourceScope: AI_RAG_PROVENANCE_SCOPES[1],
+          sourceId: "kb-internal",
+          text: "The oracle says the archive is stable.",
+          trust: 0.91,
+        },
+      ],
+      featureFlags: {
+        [AI_RAG_FEATURE_FLAGS.rag]: true,
+        [AI_RAG_FEATURE_FLAGS.provenance]: true,
+      },
+      maxContextChars: 300,
+      correlationId: "corr-approved",
+    });
+
+    expect(result.status).toBe("approved");
+    expect(result.citations).toEqual([]);
+    expect(result.reasonCodes).toEqual([]);
+  });
+
+  it("marks empty queries with generated audit correlation", () => {
+    const result = resolveAiRagContext({
+      query: "   ",
+      chunks: [
+        {
+          chunkId: "chunk-empty-query",
+          sourceScope: AI_RAG_PROVENANCE_SCOPES[1],
+          sourceId: "kb-empty-query",
+          text: "The archive entry is stable.",
+          trust: 0.91,
+        },
+      ],
+      featureFlags: {
+        [AI_RAG_FEATURE_FLAGS.rag]: true,
+      },
+      maxContextChars: 300,
+    });
+
+    expect(result.source).toBe("policy-empty");
+    expect(result.audit.correlationId.length).toBeGreaterThan(0);
+    expect(result.status).toBe("approved");
+  });
+
+  it("normalizes invalid trust scores and keeps safe chunks reviewable", () => {
+    const result = resolveAiRagContext({
+      query: "What does the oracle say?",
+      chunks: [
+        {
+          chunkId: "chunk-invalid-trust",
+          sourceScope: AI_RAG_PROVENANCE_SCOPES[0],
+          sourceId: "transcript-1",
+          text: "A safe but untrusted transcript line.",
+          trust: Number.NaN,
+        },
+      ],
+      featureFlags: {
+        [AI_RAG_FEATURE_FLAGS.rag]: true,
+      },
+      maxContextChars: 300,
+      correlationId: "corr-invalid-trust",
+    });
+
+    expect(result.status).toBe("requires-review");
+    expect(result.reasonCodes).toContain("low-trust-context:chunk-invalid-trust");
+  });
+
   it("flags unsafe chunks as untrusted", () => {
     expect(
       isAiRagChunkSafe({
@@ -150,5 +221,14 @@ describe("@plasius/ai-rag", () => {
         trust: 0.32,
       })
     ).toBe(false);
+    expect(
+      isAiRagChunkSafe({
+        chunkId: "chunk-safe",
+        sourceScope: AI_RAG_PROVENANCE_SCOPES[1],
+        sourceId: "kb-safe",
+        text: "ordinary context",
+        trust: 0.9,
+      })
+    ).toBe(true);
   });
 });
