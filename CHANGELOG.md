@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - Updated RAG feature flag alignment to the shared orchestration gating.
 
 - **Fixed**
+  - Release automation now prepares version/changelog updates on a release PR before publishing from protected `main`.
   - (placeholder)
 
 - **Security**
