@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 - **Added**
+  - (placeholder)
+
+- **Changed**
+  - (placeholder)
+
+- **Fixed**
+  - (placeholder)
+
+- **Security**
+  - (placeholder)
+
+## [0.1.3] - 2026-05-20
+
+- **Added**
   - Added retrieval context packing with provenance and trust scoring.
   - Added prompt-injection detection guard and status-driven result codes.
   - Added deterministic provenance and citation extraction for trusted chunks.
@@ -44,3 +58,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 [0.1.2]: https://github.com/Plasius-LTD/ai-rag/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Plasius-LTD/ai-rag/releases/tag/v0.1.1
+[0.1.3]: https://github.com/Plasius-LTD/ai-rag/releases/tag/v0.1.3
